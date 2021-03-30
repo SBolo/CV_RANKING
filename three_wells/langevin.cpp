@@ -15,24 +15,30 @@ int main(int argc, char *argv[]) {
     char filename[50];
     double bfm, temp, x, y, z1, z2, z3;
     int dim = 2;
-    vector<double> x0 = vector<double>(dim); //vector for initial condition
+    vector<double> x0(dim); //vector for initial condition
     x0[0] = -1.;
     x0[1] = 0.;
 
     /** SIMULATION PARAMETERS */
-    int total_time = 500000; //total number of timesteps to simulate
-    int stride = 50; //frames will be saved once every 'stride'
+    int total_time = 10000000; //total number of timesteps to simulate
+    int stride = 100; //frames will be saved once every 'stride'
     double timestep = 0.02; //integration timestep
     int len = (int)(total_time/stride);
 
     /** PHYSICAL PARAMETERS */
     double friction = 1.; //friction constant
-    double kbT      = 0.5; //energy in k Boltzmann times the temperature
+    double kbT      = 0.2; //energy in k Boltzmann times the temperature
 
     /** TARGETS FOR Z CALCULATION */
-    vector<double> t1{-1., 0.};
-    vector<double> t2{1.5, 0.};
-    vector<double> t3{1., 0.};
+    vector<double> t1(dim);
+    vector<double> t2(dim);
+    vector<double> t3(dim);
+    t1[0] = -1.;
+    t1[1] = 0.;
+    t2[0] = 1.5;
+    t2[1] = 0.;
+    t3[0] = 1.;
+    t3[1] = 0.;
 
     cout << endl;
     cout << "# LANGEVIN DYNAMICS IN A 3 WELL POTENTIAL" << endl;
@@ -58,7 +64,7 @@ int main(int argc, char *argv[]) {
     sprintf(filename, "traj.txt");
     info.open(filename, ios::out);
     info << "#x\t y\t z1\t z2 \tz3" << endl;
-    info << x0[0] << "\t" << x0[1] << endl;
+    info << x << "\t" << y << "\t" << z1 << "\t" << z2 << "\t" << z3 << endl;
 
     //loop over timesteps
     for(int j = 0; j < total_time; j++) {
@@ -79,5 +85,4 @@ int main(int argc, char *argv[]) {
      info.close(); //<-------- FOR INFOS
      cout << "# DONE!" << endl;
     return 0;
-
 }

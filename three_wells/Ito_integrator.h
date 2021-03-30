@@ -40,6 +40,7 @@ class Ito_integrator {
         double time;
         double kbT;
         double force_mod;
+        double potential;
 
         void force();
         double d_hypot(vector<double>);

@@ -7,7 +7,7 @@ OBJS = random.o langevin.o Ito_integrator.o
 LIBS_COMMON = -lgsl -lgslcblas -I/opt/local/include -L/opt/local/lib
 
 main: 	$(OBJS)
-	$(ICPP) $(OPT) -o langevin $(OBJS) $(LIBS_COMMON)
+	$(ICPP) $(OPT) -o ../langevin $(OBJS) $(LIBS_COMMON)
 
 %.o: %.cpp
 	$(ICPP) $(OPT) $(DIRECT) -c $(INCLUDE) $(LIBS_COMMON) $(<) $(outputs)
