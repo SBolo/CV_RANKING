@@ -13,7 +13,6 @@ RandomNumbers::RandomNumbers() {
 #else /** otherwise, use the given time as seed */
     srand(time(NULL));
 #endif
-
     /** allocate gsl arrays for rng calculations */
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
@@ -22,7 +21,7 @@ RandomNumbers::RandomNumbers() {
 //------------------------------------------------------------------------------
 
 RandomNumbers::~RandomNumbers() {
-        gsl_rng_free(r); /** frees gsl_array */
+    gsl_rng_free(r); /** frees gsl_array */
 }
 //------------------------------------------------------------------------------
 
@@ -32,12 +31,11 @@ double RandomNumbers::uniform() {
 //------------------------------------------------------------------------------
 
 double RandomNumbers::gaussian( double tau ) {
+    /** compute two uniforms */
+    double r = uniform();
+    double theta = uniform();
 
-        /** compute two uniforms */
-        double r = uniform();
-        double theta = uniform();
-
-        return sqrt( - 2.*log(r) ) * sin(2.*M_PI*theta) * sqrt(tau);
+    return sqrt( - 2.*log(r) ) * sin(2.*M_PI*theta) * sqrt(tau);
 
 }
 //------------------------------------------------------------------------------

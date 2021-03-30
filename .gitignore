@@ -3,3 +3,6 @@
 *.png 
 *out*
 .DS_Store
+three_wells/langevin
+three_wells/*.o
+three_wells/*.txt
