@@ -22,9 +22,11 @@ class Ito_integrator {
         ~Ito_integrator();
 
         void evolve();
+        void evolve_committor(vector<double>, double, double);
         double calc_z(vector<double>);
         double get_position(int);
         double get_force();
+        bool get_flag();
 
     private:
         RandomNumbers *rng;
@@ -40,9 +42,12 @@ class Ito_integrator {
         double time;
         double kbT;
         double force_mod;
-        double potential;
+        double p;
+        bool stop_flag;
 
         void force();
+        void potential();
+        void force_potential();
         double d_hypot(vector<double>);
 
 };

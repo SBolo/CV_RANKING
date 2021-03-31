@@ -1,7 +1,8 @@
-*.txt
 *.pdf
 *.png 
 *out*
+langevin
+committor
 .DS_Store
 three_wells/langevin
 three_wells/*.o
