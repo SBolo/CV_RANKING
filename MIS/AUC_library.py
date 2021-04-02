@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
 
 def compute_data_entropies(clusters):
     N = len(clusters)
@@ -31,15 +30,31 @@ def compute_curve(dist_matrix, full, sample_size,**kwargs):
             raise Exception("if full is False ncl_list should be passed!")
         ncl_list = kwargs.get("ncl_list")
         clusters_list = [fcluster(Z, t=nclust, criterion='maxclust') for nclust in ncl_list]
-        #print(clusters_list)
         entropies = np.array([compute_data_entropies(clusters) for clusters in clusters_list])
-        print(entropies.shape)
+        # introducing last and first element
         last_element = np.array([np.log2(sample_size),0.0]).reshape(1,2)
         first_element = np.array([0.0,0.0]).reshape(1,2)
-        print(last_element.shape)
+        # concatenating
         entropies = np.concatenate((first_element,entropies,last_element))
-        #entropies = np.append(entropies,,axis=0)
         print(entropies)
+    return entropies
+
+def compute_curve_alternative(cv_vector,full,sample_size,**kwargs):
+    Z = linkage(cv_vector, 'average')
+    if full == True:
+        print("TODO: implement full AUC")
+    elif full == False:
+        if "ncl_list" not in kwargs:
+            raise Exception("if full is False ncl_list should be passed!")
+        ncl_list = kwargs.get("ncl_list")
+        clusters_list = [fcluster(Z, t=nclust, criterion='maxclust') for nclust in ncl_list]
+        entropies = np.array([compute_data_entropies(clusters) for clusters in clusters_list])
+        # introducing last and first element
+        last_element = np.array([np.log2(sample_size),0.0]).reshape(1,2)
+        first_element = np.array([0.0,0.0]).reshape(1,2)
+        # concatenating
+        entropies = np.concatenate((first_element,entropies,last_element))
+        #print(entropies)
     return entropies
 
 def plot_curve(resolution,relevance,label,color,show):
@@ -61,27 +76,90 @@ def retrieve_curve_points(sample_size,n_points):
     NB2: you often observe the maximum of the relevance if ncl ~ 500 
     """
 
+def perturb_weights(weights):
+    p_vector = np.random.normal(0.0,scale=0.01,size=weights.shape[0])
+    print("weghts perturbation is ", p_vector)
+    weights = weights + p_vector
+    return weights
 
-#ncl_list = [2,4,8,16,32,64,128,256,512,1024,2048,3072,4096,6144,7168,8192,9216]
+def evaluate_CV(dataset,ncl_list,**kwargs):
+    """
+    function that evaluates the Collective variable chosen over the trajectory.
+    it could be a single CV or a linear combination of CVs 
+    """
+    sample_size = dataset.shape[0]
+    if dataset.shape[1] > 1:
+        if "weights" not in kwargs:
+            raise Exception("if dataset.shape[1] > 1 weights should be passed!")
+        else:
+            weights = kwargs.get("weights")
+            cv = np.average(dataset,axis=1,weights=weights).reshape(sample_size,1)
+            if kwargs.get("save_comm") == True:
+                print("saving committor to file")
+                np.savetxt("cv_committor.txt",cv)
+    else:
+        cv = dataset.reshape(-1,1)
+    print("cv shape" , cv.shape)
+    cv_curve = compute_curve_alternative(cv,sample_size=sample_size,full=False,ncl_list=ncl_list)
+    print("cv curve is ", cv_curve)
+    AUC = compute_AUC(cv_curve[:,0],cv_curve[:,1],sample_size=sample_size)
+    print("colvar has AUC ", AUC)
+    if "plot" in kwargs:
+        plot = kwargs.get("plot")
+    if "label" in kwargs:
+        label = kwargs.get("label")
+        if plot == True:
+            plot_curve(cv_curve[:,0],cv_curve[:,1],label=label,show=True)
 
-dataset = np.loadtxt("../traj.txt")
-sample_idx = list(range(1,dataset.shape[0],4))
-sample_size = int(dataset.shape[0]/4)
-print(sample_idx)
-ncl_list = [2,8,32,64,80,96,128,192,256,320,384,448,512,768,1024,1280,1536,1792,2048,3072,4096,6144,7168,8192,9216,10240,12288,14336,16384,18432]
-colvars = {0:"x", 1:"y", 2:"z1", 3:"z2", 4:"z3"}
-colors = {0:"red", 1:"blue", 2:"green", 3:"lightgreen", 4:"pink"}
-for n in range(dataset.shape[1]):
-    print("colvar", n)
-    #distances = pdist(dataset[:,n].reshape(dataset.shape[0],1),"euclidean")
-    distances = pdist(dataset[sample_idx,n].reshape(25000,1),"euclidean")
-    cv_curve = compute_curve(distances,sample_size=sample_size,full=False,ncl_list=ncl_list)
-    plot_curve(cv_curve[:,0],cv_curve[:,1],label=colvars[n],color=colors[n],show=False)
-    AUC = compute_AUC(cv_curve[:,0],cv_curve[:,1],sample_size)
-    print("colvar", colvars[n], "has AUC = ", AUC)
-#print(dataset.shape)
-plt.legend(fontsize=12)
-plt.xlabel("$H_s$",fontsize=16)
-plt.ylabel("$H_k$",fontsize=16)
-plt.savefig("")
-plt.show()
+def optimize_CV(dataset,ncl_list, ncv, steps,t_zero,steps_init):
+    print("TODO: implement GENERATE RANDOM CV!")
+    #generate_random_CV()
+    weights= np.array([0.2,0.2,0.2,0.2,0.2])
+    print("dataset shape", dataset.shape)
+    start_cv = np.average(dataset,axis=1,weights=weights)
+    curr_cv = start_cv.copy()
+    print("start_cv is ", start_cv)
+    sample_size = start_cv.shape[0]
+    print("sample_size is ", sample_size)
+    cv_curve = compute_curve_alternative(start_cv.reshape(sample_size,1),sample_size=sample_size,full=False,ncl_list=ncl_list)
+    AUC = compute_AUC(cv_curve[:,0],cv_curve[:,1],sample_size=sample_size) 
+    print("start colvar w =", weights, "has AUC = ", AUC)
+    # highest quantity
+    highest_AUC = AUC
+    highest_AUC_weights = weights.copy()
+    SA_step = 0
+    while SA_step < steps:
+        temp = t_zero*np.exp(-SA_step/steps_init)
+        new_weights = perturb_weights(weights)
+        new_cv = np.average(dataset,axis=1,weights=new_weights)
+        cv_curve = compute_curve_alternative(new_cv.reshape(sample_size,1),sample_size=sample_size,full=False,ncl_list=ncl_list)
+        new_AUC = compute_AUC(cv_curve[:,0],cv_curve[:,1],sample_size=sample_size) 
+        print("SA_step", SA_step, "new_cv w =", new_weights, "has AUC = ", new_AUC)
+        SA_step += 1
+        # SA 
+        if (new_AUC > AUC):
+            print("move accepted")
+            AUC = new_AUC
+            #curr_cv = new_cv.copy()
+            weights = new_weights.copy()
+            if AUC > highest_AUC:
+                print("highest_AUC found (AUC = " ,AUC , " w = ", weights,")")
+                highest_AUC = AUC
+                highest_AUC_weights = weights.copy()
+        else:
+            r = np.random.uniform(0,1)
+            p = np.exp((new_AUC - AUC)/temp)
+            print("t - r - p", format(t,6),format(r,6) , format(p,6))
+            if p > r:
+                print("p>r, move accepted")
+                AUC = new_AUC
+                #curr_cv = new_cv.copy()
+                weights = new_weights.copy()
+            else:
+                print("move rejected")
+        print("current cv w =", weights, "has AUC = ", AUC)
+    # end of Simulated annealing
+    print("END OF SIMULATED ANNEALING: highest_AUC found (AUC = " ,highest_AUC , " w = ", highest_AUC_weights,")")
+
+def compare_to_committor(comm, cv):
+    committor = pd.read_csv("../committor.txt", delimiter=r"\s+", header = None, comment='#').values
