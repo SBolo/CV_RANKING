@@ -38,6 +38,7 @@ def plot_2dfes(traj, bins=80):
 def plot_cv_fes(traj, idx, label, stride=1, dt=1, bins=80):
     # compute fes
     h = np.histogram(traj[:,idx], bins=bins)
+    print(h[:10])
     fes = -np.log(h[0])
     fes -= np.min(fes) #shift to 0
 
@@ -108,10 +109,12 @@ def committor_from_traj(comm, traj, xlim, ylim, stride=1, dt=1):
 
     fig.tight_layout()
     plt.show()
+    return q
 
-traj = quick_load('traj.txt')
-committor_from_traj("committor.txt", traj, (-1.5,1.5), (-0.25, 2.5), stride=100, dt=0.02)
+#traj = quick_load('traj.txt')
+#committor_from_traj("committor.txt", traj, (-1.5,1.5), (-0.25, 2.5), stride=100, dt=0.02)
 
 #traj = quick_load('traj.txt')
 #plot_2dfes(traj)
 #plot_cv_fes(traj, 0, 'X', bins=50, stride=100, dt=0.02)
+#plot_cv_fes(traj, 1, 'Y', bins=50, stride=100, dt=0.02)

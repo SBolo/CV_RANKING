@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sys
+sys.path.append('../')
+import plot_results as splot
 
 def compute_data_entropies(clusters):
     N = len(clusters)
@@ -161,5 +164,29 @@ def optimize_CV(dataset,ncl_list, ncv, steps,t_zero,steps_init):
     # end of Simulated annealing
     print("END OF SIMULATED ANNEALING: highest_AUC found (AUC = " ,highest_AUC , " w = ", highest_AUC_weights,")")
 
-def compare_to_committor(comm, cv):
-    committor = pd.read_csv("../committor.txt", delimiter=r"\s+", header = None, comment='#').values
+def compare_to_committor(traj,cv):
+    q = splot.committor_from_traj("../committor.txt", traj, (-1.5,1.5), (-0.25, 2.5), stride=100, dt=0.02)
+    # analogous but for my cv
+    fig = plt.figure(figsize=(15, 5))
+    gs = fig.add_gridspec(nrows=1, ncols=3)
+
+    ax1 = fig.add_subplot(gs[0, :2])
+    x = np.linspace(0, len(traj[:,0]) * 100 * 0.02, len(traj[:,0]))
+    ax1.plot(x, cv, c='k', lw=2)
+    ax1.set_ylabel('CV')
+    ax1.set_xlabel('Time [a. u.]')
+
+    ax2 = fig.add_subplot(gs[0, 2])
+    plt.hist(cv, bins=50, density=True, color='k', alpha=0.5, edgecolor='k', orientation='horizontal')
+    plt.xlabel('Proability Density')
+    ax2.yaxis.set_major_formatter(plt.NullFormatter())
+
+    fig.tight_layout()
+    plt.show()
+    print("scatter plot")
+    fig = plt.figure(figsize=(10, 10))
+    plt.scatter(q,cv)
+    plt.xlabel("real committor")
+    plt.ylabel("optimal cv")
+    plt.show()
+
