@@ -1,3 +1,5 @@
+# Simple C++ Langevin integrator
+
 ## Generate trajectory
 1. Compile with `make`
 2. Run `langevin`
